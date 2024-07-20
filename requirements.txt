@@ -1,11 +1,10 @@
 fastapi
 uvicorn
 pydantic
+psycopg2
 sqlalchemy
-llama_index
-bson
+llama-index
 pymongo
 motor
-pyjwt
-psycopg2
 python-decouple
+pyjwt
