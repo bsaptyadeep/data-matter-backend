@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+llama_index
+bson
+pymongo
+motor
+pyjwt
+psycopg2
+python-decouple
