@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from bson.objectid import ObjectId
 from typing import List, Optional
 
 class UpdateAssistant(BaseModel):
@@ -9,4 +10,3 @@ class UpdateAssistant(BaseModel):
     connection_string: Optional[str] = None
     database_type: Optional[str] = None
     tables: Optional[List[str]] = None
-

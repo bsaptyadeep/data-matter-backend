@@ -13,7 +13,6 @@ router = APIRouter(prefix="/assistant", tags=["assistant"])
 async def get_assistants(token: str = Depends(authenticate_user)):
     user_id = ObjectId(token)
     assistant_collection = get_assistant_collection()
-    print("testing~user~id", user_id)
     cursor = assistant_collection.find({"create_by_id": user_id})
     assistants = await cursor.to_list(length=100)
     assistant_list = []
@@ -75,6 +74,7 @@ async def update_assistant(req_body: UpdateAssistant = Body(...), token: str = D
     if updated_product is None:
         return {"message": "Product not found"}
     updated_product["_id"] = str(updated_product["_id"])
+    updated_product["create_by_id"] = str(updated_product["create_by_id"])
     return {"message": "Product updated successfully", "product": updated_product}
 
 @router.get("/table")
