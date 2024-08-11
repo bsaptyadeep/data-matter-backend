@@ -67,7 +67,6 @@ async def respond_query(assistant_id: str = Query(..., description="connection s
                   query: str = Query(..., description="user query")):
     assistant_collection = get_assistant_collection()
     assistant = await assistant_collection.find_one({ "_id": ObjectId(assistant_id) })
-    print(assistant)
     engine = create_engine(assistant["connection_string"])
     sql_database = SQLDatabase(engine, include_tables=assistant["tables"])
     llm = OpenAI(model="gpt-3.5-turbo")

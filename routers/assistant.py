@@ -42,11 +42,9 @@ async def create_assistant(assistant: dict = Body(...), user_id: str = Depends(a
             }
         # Logic to create a new assistant
         assistant_collection = get_assistant_collection()
-        print("testing~assistant", assistant)
         assistant["create_by_id"]=ObjectId(user_id)
         inserted_result: InsertOneResult = assistant_collection.insert_one(assistant)
         inserted_result = await inserted_result
-        print("assistant_inserted", inserted_result)
 
         # Check for successful insertion
         if not inserted_result.inserted_id:

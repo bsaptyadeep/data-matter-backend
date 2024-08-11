@@ -32,7 +32,6 @@ async def create_assistant(user: User = Body(...)):
     try:
         user_collection = get_user_collection()
         duplicate_user = await user_collection.find_one({ "email_id": user.email_id})
-        print("duplicate_user", duplicate_user)
         if duplicate_user:
             return {
             "message": "User already exist",
@@ -40,7 +39,6 @@ async def create_assistant(user: User = Body(...)):
         }
         inserted_result: InsertOneResult = user_collection.insert_one(user.dict())
         inserted_result = await inserted_result
-        print("user_inserted", inserted_result)
 
         # Check for successful insertion
         if not inserted_result.inserted_id:
@@ -67,16 +65,13 @@ async def loginUser(user: User = Body(...)):
             }
         access_token_collection = get_access_token_collection()
         existing_access_token = await access_token_collection.find_one({"user_id": valid_user["_id"]})
-        print("existing_access_token", existing_access_token)
         if existing_access_token:
             return {
                 "access_token": existing_access_token["access_token"],
                 "existing_session": True
             }
         user_id_str = str(valid_user["_id"])
-        print("testing_user_id", user_id_str)
         access_token = create_access_token(user_id=user_id_str)
-        print("access_token", access_token)
         inserted_access_token_result = await access_token_collection.insert_one({
             "user_id": valid_user["_id"],
             "access_token": access_token
