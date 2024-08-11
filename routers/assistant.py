@@ -1,30 +1,34 @@
-from fastapi import APIRouter, Body, HTTPException, Query
+from fastapi import APIRouter, Body, HTTPException, Query, Depends
 from models.assistant import Assistant
 from models.update_assistant import UpdateAssistant
 from pymongo.results import InsertOneResult
 from database import get_assistant_collection
 import psycopg2
 from bson.objectid import ObjectId
+from routers.user import authenticate_user
 
 router = APIRouter(prefix="/assistant", tags=["assistant"])
 
 @router.get("/")
-async def get_assistants():
+async def get_assistants(token: str = Depends(authenticate_user)):
+    user_id = ObjectId(token)
     assistant_collection = get_assistant_collection()
-    cursor = assistant_collection.find()
+    print("testing~user~id", user_id)
+    cursor = assistant_collection.find({"create_by_id": user_id})
     assistants = await cursor.to_list(length=100)
     assistant_list = []
     for assistant in assistants:
         assistant["_id"] = str(assistant["_id"])
+        assistant["create_by_id"] = str(assistant["create_by_id"])
         assistant_list.append(assistant)
     return {
         "assistant": assistant_list
     }
 
 @router.post("/")
-async def create_assistant(assistant: Assistant = Body(...)):
+async def create_assistant(assistant: dict = Body(...), user_id: str = Depends(authenticate_user)):
     try:
-        conn = psycopg2.connect(assistant.connection_string)
+        conn = psycopg2.connect(assistant["connection_string"])
         cur = conn.cursor()
         cur.execute("""
             SELECT table_name
@@ -39,7 +43,9 @@ async def create_assistant(assistant: Assistant = Body(...)):
             }
         # Logic to create a new assistant
         assistant_collection = get_assistant_collection()
-        inserted_result: InsertOneResult = assistant_collection.insert_one(assistant.dict())
+        print("testing~assistant", assistant)
+        assistant["create_by_id"]=ObjectId(user_id)
+        inserted_result: InsertOneResult = assistant_collection.insert_one(assistant)
         inserted_result = await inserted_result
         print("assistant_inserted", inserted_result)
 
@@ -58,7 +64,7 @@ async def create_assistant(assistant: Assistant = Body(...)):
         raise HTTPException(status_code=400, detail=f"Error: {e}")
 
 @router.put("/")
-async def update_assistant(req_body: UpdateAssistant = Body(...)):
+async def update_assistant(req_body: UpdateAssistant = Body(...), token: str = Depends(authenticate_user)):
     update_assistant = {}
     update_filter = {"_id": ObjectId(req_body.id)}
     if req_body.tables:

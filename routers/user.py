@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, HTTPException, Query
+from fastapi import APIRouter, Body, HTTPException, Depends, status
 from models.user import User # Import the User model
 from pymongo.results import InsertOneResult
 from database import get_user_collection, get_access_token_collection
@@ -6,6 +6,7 @@ import psycopg2
 from bson.objectid import ObjectId
 from pydantic import BaseModel
 import jwt
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -17,6 +18,14 @@ def create_access_token(user_id: str):
     encoded_jwt = jwt.encode(payload, JWT_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+async def authenticate_user(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
+    if credentials.scheme != "Bearer":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authorization scheme")
+    access_token_collection = get_access_token_collection()
+    existing_access_token = await access_token_collection.find_one({"access_token": credentials.credentials})
+    if existing_access_token == None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
+    return existing_access_token["user_id"]
 
 @router.post("/")
 async def create_assistant(user: User = Body(...)):
@@ -82,3 +91,8 @@ async def loginUser(user: User = Body(...)):
         # Catch unexpected errors
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Error: {e}")
+
+@router.get("/protected")
+async def protected_route(token: str = Depends(authenticate_user)):
+    # Access token is valid, proceed with protected operations
+    return {"message": "Access granted"}
