@@ -27,6 +27,19 @@ async def authenticate_user(credentials: HTTPAuthorizationCredentials = Depends(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
     return existing_access_token["user_id"]
 
+@router.get("/")
+async def get_user(id: str = Depends(authenticate_user)):
+    try:
+        user_id = ObjectId(id)
+        user_collection = get_user_collection()
+        user = await user_collection.find_one({"_id": user_id})
+        user["_id"] = str(user["_id"])
+        return user
+    except Exception as e:
+        # Catch unexpected errors
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Error: {e}")
+
 @router.post("/")
 async def create_assistant(user: User = Body(...)):
     try:
@@ -86,8 +99,3 @@ async def loginUser(user: User = Body(...)):
         # Catch unexpected errors
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Error: {e}")
-
-@router.get("/protected")
-async def protected_route(token: str = Depends(authenticate_user)):
-    # Access token is valid, proceed with protected operations
-    return {"message": "Access granted"}

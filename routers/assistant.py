@@ -99,3 +99,12 @@ async def get_tables(id: str = Query(..., description="Assistant AI id")):
         raise Exception(f"Error retrieving tables: {str(e)}")  # Raise specific error message
 
     return {"tables": tables}
+
+@router.delete("/{id}")
+async def delete_assistant(id: str, user_id: str = Depends(authenticate_user)):
+    delete_filter = {"_id": ObjectId(id)}
+    assistant_collection = get_assistant_collection()
+    deleted_assistant = await assistant_collection.delete_one(delete_filter)
+    if deleted_assistant is None:
+        return {"message": "Assistant not found"}
+    return {"message": "Assistant deleted successfully"}

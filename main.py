@@ -37,31 +37,6 @@ app.include_router(user.router)
 def testing():
     return {"testing": True}
 
-
-@app.get("/get-tables")
-def get_tables(conn_string: str = Query(..., description="connection string")):
-    tables = []
-    try:
-        conn = psycopg2.connect(conn_string)
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = 'public';  -- Modify if needed
-        """)
-
-        tables = [row[0] for row in cur.fetchall()]
-
-    except Exception as e:
-        raise Exception(f"Error retrieving tables: {str(e)}")  # Raise specific error message
-
-    finally:
-        if conn:
-            conn.close()
-
-    return {"tables": tables}
-
 @app.post("/respond_query")
 async def respond_query(assistant_id: str = Query(..., description="connection string"),
                   query: str = Query(..., description="user query")):
@@ -72,6 +47,7 @@ async def respond_query(assistant_id: str = Query(..., description="connection s
     llm = OpenAI(model="gpt-3.5-turbo")
     query_engine_openai = NLSQLTableQueryEngine(sql_database, tables=assistant["tables"], llm=llm)
     response = query_engine_openai.query(query)
+    print("testing~response", response)
     responseObj = {
         "user": query,
         "response": {
@@ -81,6 +57,3 @@ async def respond_query(assistant_id: str = Query(..., description="connection s
         }
     }
     return { "chat_content": responseObj }
-
-
-
