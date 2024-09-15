@@ -9,7 +9,7 @@ from llama_index.core.indices.struct_store import (
     SQLTableRetrieverQueryEngine,
     NLStructStoreQueryEngine
 )
-from routers import assistant, user
+from routers import assistant, user, chat
 from database import get_assistant_collection
 from bson.objectid import ObjectId
 import os
@@ -31,6 +31,7 @@ app.add_middleware(
 
 app.include_router(assistant.router)
 app.include_router(user.router)
+app.include_router(chat.router)
 
 
 @app.get("/testing")

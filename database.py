@@ -9,6 +9,7 @@ DATABASE_NAME = "artificial_intelligent"
 ASSISTANT_COLLECTION_NAME = "ASSISTANT"
 USER_COLLECTION_NAME = "USER"
 ACCESS_TOKEN_COLLECTION_NAME="ACCESS_TOKEN"
+CHAT_HISTORY_COLLECTION_NAME="CHAT_HISTORY"
 
 # Connect to MongoDB
 client = AsyncIOMotorClient(DATABASE_URI)
@@ -16,6 +17,7 @@ db = client[DATABASE_NAME]
 assistant_collection = db[ASSISTANT_COLLECTION_NAME]
 user_collection=db[USER_COLLECTION_NAME]
 access_token_collection=db[ACCESS_TOKEN_COLLECTION_NAME]
+chat_history_collection=db[CHAT_HISTORY_COLLECTION_NAME]
 
 
 # Function to get the database collection (optional, for reusability)
@@ -27,3 +29,6 @@ def get_user_collection():
 
 def get_access_token_collection():
     return access_token_collection
+
+def get_chat_history_collection():
+    return chat_history_collection

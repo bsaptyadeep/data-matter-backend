@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, HTTPException, Query, Depends
 from models.assistant import Assistant
 from models.update_assistant import UpdateAssistant
 from pymongo.results import InsertOneResult
-from database import get_assistant_collection
+from database import get_assistant_collection, get_chat_history_collection
 import psycopg2
 from bson.objectid import ObjectId
 from routers.user import authenticate_user
@@ -50,6 +50,14 @@ async def create_assistant(assistant: dict = Body(...), user_id: str = Depends(a
         if not inserted_result.inserted_id:
             raise HTTPException(status_code=400, detail="Failed to create assistant")
 
+        chat_history = {
+            "assistant_id": inserted_result.inserted_id,
+            "chats": []
+        }
+        chat_history_collection = get_chat_history_collection()
+        chat_history_inserted_result: InsertOneResult = chat_history_collection.insert_one(chat_history)
+        chat_history_inserted_result = await chat_history_inserted_result
+        
         # Return the inserted assistant ID with a 201 Created status code
         return {
             "message": "Assistant created successfully",
